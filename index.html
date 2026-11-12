@@ -143,4 +143,35 @@ if(g.memory){prompt.textContent=g.q;note.textContent='3秒で覚えよう';setTi
 function end(){const el=document.getElementById('fiftyInner');let history=[];try{history=JSON.parse(localStorage.getItem('drbrain50history')||'[]')}catch{}history.push({name:active.name,score,date:new Date().toISOString()});localStorage.setItem('drbrain50history',JSON.stringify(history.slice(-200)));el.innerHTML='<div class="playarea"><h1>実験完了</h1><p>'+active.name+'</p><div class="question">'+score+' / 5</div><p>これはゲーム内の成績で、医学的な脳年齢や認知機能を測るものではありません。</p><button class="back" id="again50">もう一度</button> <button class="back" id="list50">別の実験へ</button></div>';document.getElementById('again50').onclick=()=>play(all.indexOf(active));document.getElementById('list50').onclick=catalog}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
+</script>
+<style>
+#poyanGuide{position:fixed;right:14px;bottom:16px;z-index:80;width:min(210px,44vw);display:flex;align-items:flex-end;flex-direction:column;pointer-events:none;filter:drop-shadow(0 6px 14px #163d3420)}
+#poyanGuide .poyanBubble{background:#fffdf7;border:2px solid #d9c49c;color:#31463e;border-radius:17px 17px 5px 17px;padding:8px 11px;font-size:12px;line-height:1.45;font-weight:700;max-width:195px;margin-bottom:-3px;box-shadow:0 3px 12px #0001}
+#poyanGuide svg{width:104px;height:116px;align-self:flex-end;animation:poyanFloat 3s ease-in-out infinite}
+#poyanGuide .poyanName{font-size:10px;background:#235b4b;color:white;border-radius:20px;padding:3px 9px;margin-top:-10px;margin-right:10px}
+#poyanGuide.happy svg{animation:poyanHop .55s ease-in-out 2}
+#poyanGuide.think svg{animation:poyanTilt 1s ease-in-out 2}
+#poyanGuide[hidden]{display:none}
+@keyframes poyanFloat{50%{transform:translateY(-5px)}}@keyframes poyanHop{50%{transform:translateY(-16px) rotate(-7deg)}}@keyframes poyanTilt{50%{transform:rotate(8deg)}}
+@media(max-width:650px){#poyanGuide{right:5px;bottom:8px;width:145px}#poyanGuide svg{width:70px;height:82px}#poyanGuide .poyanBubble{font-size:10px;padding:6px 8px;max-width:140px}#poyanGuide .poyanName{font-size:9px}}
+@media(prefers-reduced-motion:reduce){#poyanGuide svg{animation:none!important}}
+@media print{#poyanGuide{display:none!important}}
+</style>
+<script>
+(()=>{
+'use strict';
+const bear='<svg viewBox="0 0 130 145" role="img" aria-label="オリジナルキャラクター、くま博士ぽやん" xmlns="http://www.w3.org/2000/svg"><ellipse cx="64" cy="135" rx="40" ry="7" fill="#8f9f8b" opacity=".23"/><ellipse cx="66" cy="108" rx="42" ry="34" fill="#c9a77d" stroke="#765b48" stroke-width="2.3"/><ellipse cx="66" cy="113" rx="25" ry="20" fill="#f6e8cf"/><ellipse cx="32" cy="116" rx="13" ry="9" fill="#c9a77d" stroke="#765b48" stroke-width="2"/><ellipse cx="99" cy="116" rx="13" ry="9" fill="#c9a77d" stroke="#765b48" stroke-width="2"/><circle cx="31" cy="46" r="17" fill="#c9a77d" stroke="#765b48" stroke-width="2.5"/><circle cx="100" cy="46" r="17" fill="#c9a77d" stroke="#765b48" stroke-width="2.5"/><circle cx="31" cy="46" r="8" fill="#e8c7b0"/><circle cx="100" cy="46" r="8" fill="#e8c7b0"/><ellipse cx="66" cy="65" rx="49" ry="47" fill="#c9a77d" stroke="#765b48" stroke-width="2.5"/><ellipse cx="65" cy="83" rx="23" ry="17" fill="#f6e8cf"/><ellipse cx="47" cy="67" rx="4.2" ry="5.2" fill="#3b302d"/><ellipse cx="85" cy="67" rx="4.2" ry="5.2" fill="#3b302d"/><ellipse cx="34" cy="79" rx="9" ry="5" fill="#df9992" opacity=".7"/><ellipse cx="98" cy="79" rx="9" ry="5" fill="#df9992" opacity=".7"/><path d="M60 80 Q66 75 72 80 Q69 87 65 86 Q61 86 60 80" fill="#624a3d"/><path d="M65 86 Q65 93 58 92 M65 86 Q65 93 72 92" stroke="#624a3d" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M39 27 L65 5 L91 27 L65 39 Z" fill="#235b4b" stroke="#173c37" stroke-width="2"/><path d="M50 31 L50 41 Q65 50 80 41 L80 31" fill="#235b4b" stroke="#173c37" stroke-width="2"/><path d="M91 27 L94 46" stroke="#d5a45b" stroke-width="2.5"/><circle cx="94" cy="48" r="4" fill="#d5a45b"/><path d="M54 109 Q66 116 78 109" stroke="#b58d68" stroke-width="2" fill="none"/><path d="M46 135 Q51 128 58 134 M75 134 Q82 128 87 135" stroke="#765b48" stroke-width="3" stroke-linecap="round" fill="none"/></svg>';
+let guide, bubble, timeoutId;
+function ensure(){if(guide)return;guide=document.createElement('aside');guide.id='poyanGuide';guide.setAttribute('aria-label','くま博士ぽやんのひとこと');guide.innerHTML='<div class="poyanBubble" aria-live="polite"></div>'+bear+'<span class="poyanName">くま博士・ぽやん</span>';document.body.append(guide);bubble=guide.querySelector('.poyanBubble')}
+function say(msg,mood='normal'){ensure();bubble.textContent=msg;guide.className=mood;clearTimeout(timeoutId);if(mood!=='normal')timeoutId=setTimeout(()=>{guide.className=''},1600)}
+let lastScreen='',lastScore='';
+function update(){ensure();const overlay=document.getElementById('fiftyLab');const in50=overlay&&!overlay.hidden;const root=in50?document.getElementById('fiftyInner'):document.getElementById('app');if(!root)return;
+const text=(root.textContent||'').slice(0,1600);const screen=in50?(root.querySelector('.catalog')?'catalog':root.querySelector('.options')?'question':text.includes('実験完了')?'finish':'other'):text.includes('思考都市')?'city':text.includes('研究ノート')?'report':root.querySelector('.result')?'result':root.querySelector('.hero')?'home':'game';
+if(screen!==lastScreen){lastScreen=screen;const messages={home:'やあ！ぽやんだよ。今日も一緒にひらめこう♪',catalog:'50の実験！どれから挑戦する？',question:'あわてず、じっくり考えてね。',finish:'おつかれさま！挑戦したことがすごいよ♪',city:'思考の街を、一緒に育てよう！',report:'がんばった記録を見てみよう♪',result:'おつかれさま！また遊ぼうね。',game:'むずかしい問題も楽しもう！'};say(messages[screen]||'ひらめきはすぐそこ！',screen==='finish'||screen==='result'?'happy':'normal')}
+if(in50&&screen==='question'){const feedback=root.querySelector('#fiftyFeedback');const val=feedback?.textContent||'';if(val&&val!==lastScore){lastScore=val;say(val.includes('正解！')?'やったね！すごいひらめき♪':'惜しい！次の問題も楽しもう。',val.includes('正解！')?'happy':'think')}else if(!val)lastScore=''}
+}
+let queued=false;const observer=new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;update()})});
+function start(){ensure();update();observer.observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['hidden']})}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
+})();
 </script></body></html>
