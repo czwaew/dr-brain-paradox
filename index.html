@@ -172,7 +172,28 @@ wrong:['惜しい！次の問題も楽しもう。','なるほど！間違いも
 finish:['おつかれさま！挑戦したことがすごいよ♪','完走おめでとう！ゆっくり休もう。','今日の冒険、楽しかったね！','がんばった自分に拍手〜！','また一緒に挑戦しようね♪']
 };
 const reactionIndex={};
-function react(kind,mood='normal'){const arr=reactions[kind]||reactions.home;const i=reactionIndex[kind]||0;reactionIndex[kind]=i+1;say(arr[i%arr.length],mood)}
+const poses=[
+['wave','🌼','にっこり'],['march','🧭','わくわく'],['peek','🔎','きょろきょろ'],['nod','🌱','うなずき'],['salute','🎓','えっへん'],
+['count','📚','指さし'],['point','🗺️','案内'],['bounce','🎈','うきうき'],['brave','🚩','勇気'],['look','🔭','探索'],
+['think','⏳','じっくり'],['breathe','🍃','深呼吸'],['spark','💡','ひらめき'],['ponder','📝','考え中'],['rest','☕','のんびり'],
+['cheer','🎉','大喜び'],['jump','⭐','ジャンプ'],['hat','🎓','帽子ダンス'],['flash','💡','ピカーン'],['star','🌟','きらきら'],
+['oops','🍀','おしい'],['discover','🔍','発見'],['plan','🧩','作戦会議'],['heart','💗','励まし'],['ponder','✏️','再挑戦'],
+['bow','🏅','おつかれ'],['sleep','🛏️','ひと休み'],['dance','🎊','ダンス'],['clap','👏','拍手'],['wave','🌈','またね']
+];
+const visualCss=document.createElement('style');visualCss.textContent=`
+#poyanGuide .poyanProp{position:absolute;right:76px;bottom:34px;font-size:30px;filter:drop-shadow(0 2px 2px #0002);transform-origin:center;animation:poyanPropMove 1.3s ease-in-out infinite;pointer-events:none}
+#poyanGuide .poyanFace{position:absolute;right:37px;bottom:68px;font-size:15px;line-height:1;pointer-events:none}
+#poyanGuide .poyanAction{position:absolute;right:9px;bottom:11px;font-size:9px;color:#245346;background:#fff8e8;border-radius:8px;padding:2px 5px;pointer-events:none}
+#poyanGuide[data-pose="jump"] svg,#poyanGuide[data-pose="bounce"] svg,#poyanGuide[data-pose="cheer"] svg{animation:poyanHop .6s ease-in-out infinite}
+#poyanGuide[data-pose="ponder"] svg,#poyanGuide[data-pose="think"] svg,#poyanGuide[data-pose="look"] svg{animation:poyanTilt 1.6s ease-in-out infinite}
+#poyanGuide[data-pose="dance"] svg,#poyanGuide[data-pose="hat"] svg,#poyanGuide[data-pose="wave"] svg{animation:poyanTilt .7s ease-in-out infinite alternate}
+#poyanGuide[data-pose="sleep"] svg,#poyanGuide[data-pose="rest"] svg{animation:poyanFloat 4s ease-in-out infinite}
+@keyframes poyanPropMove{50%{transform:translateY(-8px) rotate(9deg)}}
+@media(max-width:650px){#poyanGuide .poyanProp{right:48px;bottom:23px;font-size:21px}#poyanGuide .poyanFace{right:24px;bottom:48px;font-size:10px}#poyanGuide .poyanAction{font-size:8px;right:3px}}
+@media(prefers-reduced-motion:reduce){#poyanGuide .poyanProp{animation:none!important}}
+`;document.head.append(visualCss);
+function react(kind,mood='normal'){const arr=reactions[kind]||reactions.home;const i=reactionIndex[kind]||0;reactionIndex[kind]=i+1;const group=['home','catalog','question','correct','wrong','finish'].indexOf(kind);const pose=poses[Math.max(0,group)*5+i%5];say(arr[i%arr.length],mood);guide.dataset.pose=pose[0];let prop=guide.querySelector('.poyanProp');if(!prop){prop=document.createElement('span');prop.className='poyanProp';prop.setAttribute('aria-hidden','true');guide.append(prop)}prop.textContent=pose[1];let action=guide.querySelector('.poyanAction');if(!action){action=document.createElement('span');action.className='poyanAction';action.setAttribute('aria-hidden','true');guide.append(action)}action.textContent=pose[2];const svg=guide.querySelector('svg');const eyes=svg?.querySelectorAll('ellipse');if(svg){svg.style.transformOrigin='center 80%';svg.setAttribute('aria-label','くま博士ぽやん：'+pose[2])}}
+
 function say(msg,mood='normal'){ensure();if(bubble.textContent!==msg)bubble.textContent=msg;guide.className=mood;clearTimeout(timeoutId);if(mood!=='normal')timeoutId=setTimeout(()=>{guide.className=''},1600)}
 
 let lastScreen='',lastScore='';
