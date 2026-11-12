@@ -58,4 +58,89 @@ $('#cityBtn').onclick=city;
 const reportBtn=document.createElement('button');reportBtn.textContent='研究レポート';reportBtn.id='reportBtn';$('.nav').append(reportBtn);reportBtn.onclick=report;
 
 })();
+</script>
+<style>
+#fiftyLab{position:fixed;inset:0;z-index:9999;background:#f2f0e8;overflow:auto;padding:20px;color:#142d30;font-family:system-ui,sans-serif}
+#fiftyLab[hidden]{display:none}#fiftyLab .inner{max-width:1000px;margin:auto}#fiftyLab .catalog{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+#fiftyLab .labcard{background:white;border:1px solid #cbd6cf;border-radius:16px;padding:18px;text-align:left;color:#142d30;min-height:125px}
+#fiftyLab .labcard strong{display:block;font-size:19px}#fiftyLab .labcard small{color:#536a68}
+#fiftyLab .playarea{max-width:650px;margin:25px auto;background:white;padding:clamp(18px,5vw,36px);border-radius:22px;text-align:center}
+#fiftyLab .options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0}
+#fiftyLab .options button{padding:18px 8px;border:1px solid #cbd6cf;border-radius:12px;background:#f7f8f4;color:#142d30;font-size:clamp(18px,4vw,25px);min-height:70px}
+#fiftyLab .question{font-size:clamp(26px,6vw,43px);font-weight:800;margin:25px 0;white-space:pre-line}
+#fiftyLab .bar{height:9px;background:#dce6de;border-radius:20px;overflow:hidden}#fiftyLab .bar div{height:100%;background:#235b4b}
+#fiftyLab button{cursor:pointer}#fiftyLab .back{border:1px solid #abc3b5;border-radius:12px;padding:10px 18px;background:white;color:#124e49}
+</style>
+<script>
+(()=>{'use strict';
+const base=['ルール反転','瞬間じゃんけん','暗算チャレンジ','数字記憶','位置記憶','言葉パズル','確信度ラボ'];
+const groups=[
+['記憶', ['数字の残像','逆順メモリー','偶数だけ記憶','奇数だけ記憶','最大数の記憶','最小数の記憶','合計を記憶','最初の数字','最後の数字']],
+['反射・集中',['大小瞬断','偶奇ジャッジ','3の倍数','5の倍数','素数ハンター','ゼロ検知','符号チェッカー','一致・不一致','色の多数決']],
+['計算・論理',['足し算スプリント','引き算スプリント','掛け算スプリント','割り算スプリント','平方数ラボ','数列の続き','平均値の謎','不足数を探せ','割合の直感']],
+['視覚・直感',['図形の数','形の仲間外れ','矢印の逆','左右反転','上下反転','絵文字カウント','最長の列','最短の列']],
+['言語・発想',['文字数の観察','母音の数','逆読み','頭文字の記憶','末尾文字の記憶']],
+['パラドックス',['不正解を選べ','逆転した大小','反対を答えよ']]
+];
+const all=groups.flatMap(([category,names])=>names.map((name,i)=>({category,name,variant:i})));
+const rand=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rand(0,a.length-1)];
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rand(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const words=['さくら','りんご','ひまわり','ねこ','きつね','うさぎ','たんぽぽ','ほしぞら','ゆきだるま','かみひこうき'];
+const isPrime=n=>n>1&&Array.from({length:Math.max(0,Math.floor(Math.sqrt(n))-1)},(_,i)=>i+2).every(d=>n%d!==0);
+function make(g){
+let a=rand(2,19),b=rand(2,19),v=g.variant,cat=g.category,q='',answer='',pool=[],note='';
+if(cat==='記憶'){
+ const nums=Array.from({length:5},()=>rand(1,9));const opts=[nums[0],nums[4],Math.max(...nums),Math.min(...nums),nums.reduce((x,y)=>x+y,0)];
+ const val=[nums[2],nums[3],nums.filter(x=>x%2===0).length,nums.filter(x=>x%2===1).length,...opts.slice(2),nums[0],nums[4]][v];
+ q='覚える： '+nums.join('  ');note=['3番目は？','4番目は？','偶数はいくつ？','奇数はいくつ？','最大値は？','最小値は？','合計は？','最初の数字は？','最後の数字は？'][v];answer=val;
+}else if(cat==='反射・集中'){
+ const n=rand(1,40),m=rand(1,40);q=[n+' と '+m+'、大きいのは？',n+' は偶数？',n+' は3の倍数？',n+' は5の倍数？',n+' は素数？',n+' に0は含まれる？',n+' は正の数？',n+' と '+m+' は同じ？','● ● ▲ ● ▲  多いのは？'][v];
+ answer=[Math.max(n,m),n%2===0?'はい':'いいえ',n%3===0?'はい':'いいえ',n%5===0?'はい':'いいえ',isPrime(n)?'はい':'いいえ',String(n).includes('0')?'はい':'いいえ','はい',n===m?'はい':'いいえ','●'][v];
+}else if(cat==='計算・論理'){
+ if(v===0){q=a+' + '+b;answer=a+b}
+ if(v===1){q=(a+b)+' − '+a;answer=b}
+ if(v===2){a=rand(2,12);b=rand(2,12);q=a+' × '+b;answer=a*b}
+ if(v===3){a=rand(2,12);b=rand(2,12);q=(a*b)+' ÷ '+a;answer=b}
+ if(v===4){q=a+' の2乗';answer=a*a}
+ if(v===5){q=a+' → '+(a+3)+' → '+(a+6)+' → ?';answer=a+9}
+ if(v===6){q=a+' と '+b+' の平均';answer=(a+b)/2}
+ if(v===7){q=a+' + ? = '+(a+b);answer=b}
+ if(v===8){a=rand(1,9)*10;q=a+' の10%';answer=a/10}
+}else if(cat==='視覚・直感'){
+ const shapes=['●','▲','■','★'];const symbol=pick(shapes),other=pick(shapes.filter(x=>x!==symbol)),count=rand(2,7);
+ if(v===0||v===5){q=Array(count).fill(symbol).join(' ');answer=count}
+ if(v===1){q=symbol+' '+symbol+' '+other+' '+symbol;answer=other}
+ if(v===2){q='← の逆方向';answer='→'}
+ if(v===3){q='右 の反対';answer='左'}
+ if(v===4){q='上 の反対';answer='下'}
+ if(v===6){q='●●●●● と ▲▲▲';answer='●'}
+ if(v===7){q='■■ と ★★★★★';answer='■'}
+}else if(cat==='言語・発想'){
+ const w=pick(words);q=w;
+ answer=[Array.from(w).length,(w.match(/[あいうえお]/g)||[]).length,Array.from(w).reverse().join(''),Array.from(w)[0],Array.from(w).at(-1)][v];
+ note=['何文字？','あ・い・う・え・お は何個？','逆から読むと？','最初の文字は？','最後の文字は？'][v]
+}else{
+ if(v===0){q=a+' + '+b+' = ? ただし不正解を選べ';answer=a+b+1;pool=[a+b,a+b+1,a+b,a+b]}
+ if(v===1){q=a+' と '+b+'、小さい方を選べ';answer=Math.min(a,b)}
+ if(v===2){q='「右」の反対を選べ';answer='左'}
+}
+if(!pool.length){if(typeof answer==='number'){pool=[answer,answer+1,answer+2,answer-1]}else if(['はい','いいえ'].includes(answer)){pool=['はい','いいえ']}else if(['●','▲','■','★'].includes(answer)){pool=shapesSafe()}else if(['←','→','左','右','上','下'].includes(answer)){pool=['←','→','左','右','上','下']}else if(cat==='言語・発想'){pool=[answer,...shuffle(words).slice(0,5)]}else{pool=[answer,'0','1','2']}}
+pool=[...new Set(pool.map(String))];if(!pool.includes(String(answer)))pool.push(String(answer));return {q,note,answer:String(answer),options:shuffle(pool).slice(0,6),memory:cat==='記憶'};
+}
+function shapesSafe(){return ['●','▲','■','★']}
+let root,active=null,token=0,score=0,round=0;
+function init(){if(document.getElementById('open50'))return;const nav=document.querySelector('.nav');if(!nav)return;const btn=document.createElement('button');btn.id='open50';btn.textContent='50種の脳トレ';btn.onclick=show;nav.append(btn);root=document.createElement('div');root.id='fiftyLab';root.hidden=true;root.innerHTML='<div class="inner" id="fiftyInner"></div>';document.body.append(root)}
+function show(){init();root.hidden=false;document.body.style.overflow='hidden';catalog()}
+function close(){token++;root.hidden=true;document.body.style.overflow=''}
+function catalog(){token++;const el=document.getElementById('fiftyInner');el.innerHTML='<button class="back" id="close50">← ホームへ</button><h1>50の知的実験</h1><p>既存の7種＋新作43種。新作はそれぞれ異なる問い方で遊べます。</p><p>新作43種から選んでください。既存7種はホームでプレイできます。</p><div class="catalog" id="fiftyCards"></div>';document.getElementById('close50').onclick=close;const cards=document.getElementById('fiftyCards');groups.forEach(([cat,names])=>names.forEach(name=>{const idx=all.findIndex(x=>x.name===name);const b=document.createElement('button');b.className='labcard';b.innerHTML='<small>'+cat+' / '+String(idx+8).padStart(2,'0')+'</small><strong>'+name+'</strong><small>5問のミニチャレンジ →</small>';b.onclick=()=>play(idx);cards.append(b)}))}
+function play(idx){active=all[idx];round=0;score=0;token++;question()}
+function question(){const id=++token,g=make(active),el=document.getElementById('fiftyInner');el.innerHTML='<button class="back" id="back50">← 50種一覧</button><div class="playarea"><small>'+active.category+' / '+active.name+'</small><h2>第 '+(round+1)+' / 5 問</h2><div class="bar"><div style="width:'+round*20+'%"></div></div><div class="question" id="fiftyQuestion"></div><p id="fiftyNote"></p><div class="options" id="fiftyOptions"></div><p id="fiftyFeedback" aria-live="polite"></p></div>';document.getElementById('back50').onclick=catalog;
+const prompt=document.getElementById('fiftyQuestion'),note=document.getElementById('fiftyNote'),opts=document.getElementById('fiftyOptions');
+function choices(){if(id!==token)return;prompt.textContent=g.memory?g.note:g.q;note.textContent=g.memory?'思い出して答えましょう':g.note;g.options.forEach(value=>{const b=document.createElement('button');b.textContent=value;b.onclick=()=>{if(id!==token)return;const ok=value===g.answer;score+=+ok;opts.querySelectorAll('button').forEach(x=>x.disabled=true);document.getElementById('fiftyFeedback').textContent=ok?'正解！':'正解は '+g.answer;setTimeout(()=>{if(id!==token)return;round++;if(round===5)end();else question()},850)};opts.append(b)})}
+if(g.memory){prompt.textContent=g.q;note.textContent='3秒で覚えよう';setTimeout(choices,3000)}else choices();
+}
+function end(){const el=document.getElementById('fiftyInner');let history=[];try{history=JSON.parse(localStorage.getItem('drbrain50history')||'[]')}catch{}history.push({name:active.name,score,date:new Date().toISOString()});localStorage.setItem('drbrain50history',JSON.stringify(history.slice(-200)));el.innerHTML='<div class="playarea"><h1>実験完了</h1><p>'+active.name+'</p><div class="question">'+score+' / 5</div><p>これはゲーム内の成績で、医学的な脳年齢や認知機能を測るものではありません。</p><button class="back" id="again50">もう一度</button> <button class="back" id="list50">別の実験へ</button></div>';document.getElementById('again50').onclick=()=>play(all.indexOf(active));document.getElementById('list50').onclick=catalog}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
 </script></body></html>
